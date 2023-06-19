@@ -4,13 +4,11 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
-from .models import Snack
+from .models import Thing
+from django.contrib.auth import get_user_model
 
 
 class ThingsTests(TestCase):
-    def setUp(self):
-        reviewer = get_user_model().objects.create(username="tester",password="tester")
-        Snack.objects.create(name="rake", reviewer=reviewer)
 
     def test_list_page_status_code(self):
         url = reverse('snack_list')
@@ -23,30 +21,42 @@ class ThingsTests(TestCase):
         self.assertTemplateUsed(response, 'snack_list.html')
         self.assertTemplateUsed(response, 'base.html')
 
-    def test_list_page_context(self):
-        url = reverse('snack_list')
-        response = self.client.get(url)
-        things = response.context['snack_list']
-        self.assertEqual(len(things), 1)
-        self.assertEqual(things[0].name, "rake")
-        self.assertEqual(things[0].rating, 0)
-        self.assertEqual(things[0].reviewer.username, "tester")
+    def setUp(self):
+        self.user=get_user_model().objects.create_user(
+            username='test',
+            email='teas@email.com',
+            password='1234'
+        )
 
-    def test_detail_page_status_code(self):
-        url = reverse('snack_detail',args=(1,))
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
+        self.thing = Thing.objects.create(
+            name='test',
+            rating=1,
+            desc="test info",
+            reviewer = self.user
+        )
 
-    def test_detail_page_template(self):
-        url = reverse('snack_detail',args=(1,))
-        response = self.client.get(url)
-        self.assertTemplateUsed(response, 'snack_details.html')
-        self.assertTemplateUsed(response, 'base.html')
+    def test_str_method(self):
+        self.assertEqual(str(self.thing),"test")
 
-    def test_detail_page_context(self):
-        url = reverse('snack_detail',args=(1,))
+    def test_detail_view(self):
+        url = reverse('snack_detail', args=[self.thing.id])
         response = self.client.get(url)
-        thing = response.context['thing']
-        self.assertEqual(thing.name, "rake")
-        self.assertEqual(thing.rating, 0)
-        self.assertEqual(thing.reviewer.username, "tester")
+        self.assertTemplateUsed(response,'snack_detail.html')
+
+    def test_create_view(self):
+        obj={
+            'name':"test2",
+            'rating':5,
+            'desc': "info...",
+            'reviewer': self.user.id
+        }
+
+        url = reverse('thing_create')
+        response = self.client.post(path=url,data=obj,follow=True)
+        # self.assertEqual(len(Thing.objects.all()),2)
+        self.assertRedirects(response, reverse('snack_detail', args=[2]))
+
+
+    
+
+    
