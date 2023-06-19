@@ -23,6 +23,13 @@
                     <a href="{% url 'snacks_detail' snack.pk%}">{{snack.name}}</a>
                 </th>
                 
+                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <a href="{% url 'snack_update' snack.pk%}">Update</a>
+                </th>
+
+                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                    <a href="{% url 'snack_delete' snack.pk%}">Delete</a>
+                </th>
             </tr>
             
             {%endfor%}
@@ -33,3 +40,4 @@
         
     
 {% endblock content%}
+
